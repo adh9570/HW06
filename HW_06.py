@@ -2,12 +2,6 @@ import pandas as pd
 import numpy as np
 import statistics
 
-def getAverage(set):
-    total = 0
-    for value in set:
-        total += value
-    return total/len(set)
-
 
 ### Derived from slide 44 of Distance Metrics part A slides
 ### TODO: currently this is a generic implementation of the algorithm, will 
@@ -18,8 +12,7 @@ def computeCrossCorrelation(s, t):
     # where us is the average of S and ut is the average of T
     # where os is the standard deviation of S and same for ot and T
     N = len(s)                  # TODO: THIS IS A GUESS FIX IT ALL
-    # avgS = getAverage(s)
-    # avgT = getAverage(t)
+
     avgS = np.sum(s) / len(s)
     avgT = np.sum(t) / len(t)
 
