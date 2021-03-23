@@ -54,10 +54,8 @@ def getCrossCorrMatrix(data):
 def main():
     # data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
     data = pd.read_csv("sample data.csv")
-    # getCrossCorrMatrix(data)
-    dataWithoutID = data.iloc[:,1:]
-    dataArray = dataWithoutID.values
-    print(dataArray)
+    dataWithoutID = data.iloc[:,1:]                         # get the dataframe without the ID column
+    dataArray = dataWithoutID.values                        # turn dataframe into 2D array for use in cross correlation computations
     getCrossCorrMatrix(dataArray)
     
 
