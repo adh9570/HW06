@@ -33,16 +33,20 @@ def computeCrossCorrelation(s, t):
     return crossCorrSum/N
 
 
+### Go through every row in the data and compare it to every other row of data,
+### compute the cross correlation, and put that value into an NxN matrix of all
+### of the cross correlation values
 def getCrossCorrMatrix(data):
-    matrix = np.empty((len(data), len(data)))
-    for rowIndexX in range(0, len(data)):
+    matrix = np.empty((len(data), len(data)))               # create an empty matrix that will hold our cross correlation values
+    for rowIndexX in range(0, len(data)):                   # go through each row of the data (called X row)
         dataRowX = data.iloc[rowIndexX][1:]                 # get the X row exclusing the ID
-        for rowIndexY in range(0, len(data)):
-            if rowIndexX == rowIndexY:
+        for rowIndexY in range(0, len(data)):               # compare to every other row of the data (called Y row)
+            if rowIndexX == rowIndexY:                      # skip comparing a row to itself
                 continue
             dataRowY = data.iloc[rowIndexY][1:]             # get the Y row exclusing the ID
-            matrix[rowIndexX][rowIndexY] = computeCrossCorrelation(dataRowX, dataRowY)
+            matrix[rowIndexX][rowIndexY] = computeCrossCorrelation(dataRowX, dataRowY)  # add cross correlation to the matrix at position [X, Y]
     print(matrix)
+    return matrix
 
 
 def main():
