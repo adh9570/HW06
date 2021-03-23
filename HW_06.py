@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import statistics
 
 def getAverage(set):
@@ -17,8 +18,10 @@ def computeCrossCorrelation(s, t):
     # where us is the average of S and ut is the average of T
     # where os is the standard deviation of S and same for ot and T
     N = len(s)                  # TODO: THIS IS A GUESS FIX IT ALL
-    avgS = getAverage(s)
-    avgT = getAverage(t)
+    # avgS = getAverage(s)
+    # avgT = getAverage(t)
+    avgS = np.sum(s) / len(s)
+    avgT = np.sum(t) / len(t)
 
     stdDevS = statistics.stdev(s)
     stdDevT = statistics.stdev(t)
@@ -30,23 +33,21 @@ def computeCrossCorrelation(s, t):
     return crossCorrSum/N
 
 
-def getAllCrossCorr(data):
+def getCrossCorrMatrix(data):
+    matrix = np.empty((len(data), len(data)))
     for rowIndexX in range(0, len(data)):
-        dataRowX = data.iloc[rowIndexX]
-        for rowIndexY in range(1, len(data)):
+        dataRowX = data.iloc[rowIndexX][1:]                 # get the X row exclusing the ID
+        for rowIndexY in range(0, len(data)):
             if rowIndexX == rowIndexY:
                 continue
-            dataRowY = data.iloc[rowIndexY]
-            print(computeCrossCorrelation(dataRowX, dataRowY))
+            dataRowY = data.iloc[rowIndexY][1:]             # get the Y row exclusing the ID
+            matrix[rowIndexX][rowIndexY] = computeCrossCorrelation(dataRowX, dataRowY)
+    print(matrix)
 
 
 def main():
     data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
-    # print(data)
-    # sampleS = [1, 2, 3, 4, 5, 6, 7]
-    # sampleT = [14, 13, 12, 11, 10, 9, 8]
-    # print(computeCrossCorrelation(sampleS, sampleT))
-    getAllCrossCorr(data)
+    getCrossCorrMatrix(data)
     
 
 if __name__ == '__main__':
