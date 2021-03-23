@@ -39,19 +39,26 @@ def computeCrossCorrelation(s, t):
 def getCrossCorrMatrix(data):
     matrix = np.empty((len(data), len(data)))               # create an empty matrix that will hold our cross correlation values
     for rowIndexX in range(0, len(data)):                   # go through each row of the data (called X row)
-        dataRowX = data.iloc[rowIndexX][1:]                 # get the X row exclusing the ID
+        # dataRowX = data.iloc[rowIndexX][1:]                 # get the X row exclusing the ID
+        dataRowX = data[rowIndexX]
         for rowIndexY in range(0, len(data)):               # compare to every other row of the data (called Y row)
             if rowIndexX == rowIndexY:                      # skip comparing a row to itself
                 continue
-            dataRowY = data.iloc[rowIndexY][1:]             # get the Y row exclusing the ID
+            # dataRowY = data.iloc[rowIndexY][1:]             # get the Y row exclusing the ID
+            dataRowY = data[rowIndexY]
             matrix[rowIndexX][rowIndexY] = computeCrossCorrelation(dataRowX, dataRowY)  # add cross correlation to the matrix at position [X, Y]
     print(matrix)
     return matrix
 
 
 def main():
-    data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
-    getCrossCorrMatrix(data)
+    # data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
+    data = pd.read_csv("sample data.csv")
+    # getCrossCorrMatrix(data)
+    dataWithoutID = data.iloc[:,1:]
+    dataArray = dataWithoutID.values
+    print(dataArray)
+    getCrossCorrMatrix(dataArray)
     
 
 if __name__ == '__main__':
