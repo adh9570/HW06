@@ -30,12 +30,24 @@ def computeCrossCorrelation(s, t):
     return crossCorrSum/N
 
 
+def getAllCrossCorr(data):
+    for rowIndexX in range(0, len(data)):
+        dataRowX = data.iloc[rowIndexX]
+        for rowIndexY in range(1, len(data)):
+            if rowIndexX == rowIndexY:
+                continue
+            dataRowY = data.iloc[rowIndexY]
+            print(computeCrossCorrelation(dataRowX, dataRowY))
+
+
 def main():
     data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
     # print(data)
-    sampleS = [1, 2, 3, 4, 5, 6, 7]
-    sampleT = [14, 13, 12, 11, 10, 9, 8]
-    print(computeCrossCorrelation(sampleS, sampleT))
+    # sampleS = [1, 2, 3, 4, 5, 6, 7]
+    # sampleT = [14, 13, 12, 11, 10, 9, 8]
+    # print(computeCrossCorrelation(sampleS, sampleT))
+    getAllCrossCorr(data)
+    
 
 if __name__ == '__main__':
     main()
