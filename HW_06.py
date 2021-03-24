@@ -29,7 +29,7 @@ def computeCrossCorrelation(attributeS, attributeT):
 ### of the cross correlation values
 def columnsCrossCorr(dataframe):
     dataWithoutID = dataframe.iloc[:,1:]                    # get the dataframe without the ID column
-    matrix = np.zeros((len(dataWithoutID.columns), len(dataWithoutID.columns)))
+    matrix = np.ones((len(dataWithoutID.columns), len(dataWithoutID.columns)))
     print(matrix)
     output = open("new_output.csv", "w")
     xIndex = 0
@@ -37,7 +37,7 @@ def columnsCrossCorr(dataframe):
         yIndex = 0
         for secondColumn in dataWithoutID.columns:
             if firstColumn == secondColumn:
-                output.write('0, ')
+                output.write('1, ')
                 continue
             coef = computeCrossCorrelation(dataWithoutID[firstColumn].tolist(), dataWithoutID[secondColumn].tolist())
             matrix[xIndex][yIndex] = coef
