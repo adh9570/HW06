@@ -27,26 +27,31 @@ def computeCrossCorrelation(attributeS, attributeT):
 ### Go through every row in the data and compare it to every other row of data,
 ### compute the cross correlation, and put that value into an NxN matrix of all
 ### of the cross correlation values
-def getCrossCorrMatrix(dataframe):
+def columnsCrossCorr(dataframe):
     dataWithoutID = dataframe.iloc[:,1:]                    # get the dataframe without the ID column
-    data = dataWithoutID.values                             # turn dataframe into 2D array for use in cross correlation computations
-
-    matrix = np.empty((len(data), len(data)))               # create an empty matrix that will hold our cross correlation values
-    for rowIndexX in range(0, len(data)):                   # go through each row of the data (called X row)
-        dataRowX = data[rowIndexX]
-        for rowIndexY in range(0, len(data)):               # compare to every other row of the data (called Y row)
-            if rowIndexX == rowIndexY:                      # skip comparing a row to itself
-                continue                                    # matrix is automatically populated with zeros, which is the cross coeff of an attribute and itself
-            dataRowY = data[rowIndexY]
-            matrix[rowIndexX][rowIndexY] = computeCrossCorrelation(dataRowX, dataRowY)  # add cross correlation to the matrix at position [X, Y]
+    matrix = np.zeros((len(dataWithoutID.columns), len(dataWithoutID.columns)))
     print(matrix)
-    return matrix
+    output = open("new_output.csv", "w")
+    xIndex = 0
+    for firstColumn in dataWithoutID.columns:
+        yIndex = 0
+        for secondColumn in dataWithoutID.columns:
+            if firstColumn == secondColumn:
+                output.write('0, ')
+                continue
+            coef = computeCrossCorrelation(dataWithoutID[firstColumn].tolist(), dataWithoutID[secondColumn].tolist())
+            matrix[xIndex][yIndex] = coef
+            output.write(str(coef) + ', ')
+            yIndex += 1
+        xIndex += 1
+        output.write("\n")
 
 
 def main():
-    # data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
-    data = pd.read_csv("sample data.csv")
-    getCrossCorrMatrix(data)
+    data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
+    # data = pd.read_csv("sample data.csv")
+    # getCrossCorrMatrix(data)
+    columnsCrossCorr(data)
     
 
 if __name__ == '__main__':
