@@ -36,7 +36,7 @@ def getCrossCorrMatrix(dataframe):
         dataRowX = data[rowIndexX]
         for rowIndexY in range(0, len(data)):               # compare to every other row of the data (called Y row)
             if rowIndexX == rowIndexY:                      # skip comparing a row to itself
-                continue
+                continue                                    # matrix is automatically populated with zeros, which is the cross coeff of an attribute and itself
             dataRowY = data[rowIndexY]
             matrix[rowIndexX][rowIndexY] = computeCrossCorrelation(dataRowX, dataRowY)  # add cross correlation to the matrix at position [X, Y]
     print(matrix)
