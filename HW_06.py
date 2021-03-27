@@ -2,6 +2,50 @@ import pandas as pd
 import numpy as np
 import statistics
 
+#class that defines a cluster
+###########add more comments here
+class Cluster:
+    def __init__(self, member):
+        self.members = [member]
+        self.center = []
+        for value in range(2, len(member)):
+            self.center.append(member[value])
+
+    ### update the center of the cluster after new members have been added
+    def updateCenter(self):
+        center = []
+
+        # median calculation, removed bc of later updates/clarifications to hw
+        # for index in range(2, len(self.members[0])):
+        #     total = 0
+        #     for member in self.members:
+        #         total+=member[index]
+        #     total = total/len(self.members)     # find median of the index
+        #     center.append(total)
+        # self.center = center
+
+        # use the mode to find the center instead of the median
+        for index in range(2, len(self.members[0])):
+            ones = 0
+            zeros = 0
+            for member in self.members:
+                if member[index] == 0:
+                    zeros += 1
+                else:
+                    ones += 1
+            if ones > zeros:
+                center.append(1)
+            else:
+                center.append(0)
+        self.center = center
+
+    ### adds the members from one cluster to the current cluster
+    def addMembers(self, newMembers):
+        count = 0
+        for member in range(0, len(newMembers)):
+            self.members.append(newMembers[member])
+            count += 1
+        self.updateCenter()
 
 ### Derived from slide 44 of Distance Metrics part A slides
 ### Takes in two arrays, attributes S and T, and uses the average of all of
@@ -47,68 +91,30 @@ def columnsCrossCorr(dataframe):
         output.write("\n")
 
 
-class Cluster:
-    def __init__(self, member):
-        self.members = [member]
-        self.center = []
-        for value in range(2, len(member)):
-            self.center.append(member[value])
-
-    ### update the center of the cluster after new members have been added
-    def updateCenter(self):
-        center = []
-
-        # median calculation, removed bc of later updates/clarifications to hw
-        # for index in range(2, len(self.members[0])):
-        #     total = 0
-        #     for member in self.members:
-        #         total+=member[index]
-        #     total = total/len(self.members)     # find median of the index
-        #     center.append(total)
-        # self.center = center
-
-        # use the mode to find the center instead of the median
-        for index in range(2, len(self.members[0])):
-            ones = 0
-            zeros = 0
-            for member in self.members:
-                if member[index] == 0:
-                    zeros += 1
-                else:
-                    ones += 1
-            if ones > zeros:
-                center.append(1)
-            else:
-                center.append(0)
-        self.center = center
-
-    ### adds the members from one cluster to the current cluster
-    def addMembers(self, newMembers):
-        count = 0
-        for member in range(0, len(newMembers)):
-            self.members.append(newMembers[member])
-            count += 1
-        self.updateCenter()
-
-
-### find the L1 norm between two clusters
-def L1Norm(cluster1, cluster2):
-    distance = 0
-    for index in range(0, len(cluster1)):
-        distance += abs(cluster1[index] - cluster2[index])
-    return distance
-
-
-### Finds the Jaccard similarity and convert to distance
+### Finds the Euchildean distance between two cluster centers
 def getDistance(cluster1, cluster2):
     point1 = np.array(cluster1)
     point2 = np.array(cluster2)
 
+    #get sum of the squared value of the two centers
     sum_sq = np.sum(np.square(point1 - point2))
 
     # Doing squareroot and
-    # printing Euclidean distance
+    # calculate the Euclidean distance
     distance = (np.sqrt(sum_sq))
+    return distance
+
+### Finds the Jaccard similarity and convert to distance
+def getDistance2(cluster1, cluster2):
+    numerator = 0
+    denominator = 0
+    for index in range(0, len(cluster1)):
+        if cluster1[index] == 1 or cluster2[index] == 1:
+            denominator += 1
+        if cluster1[index] == 1 and cluster2[index] == 1:
+            numerator += 1
+    jaccard = numerator / denominator
+    distance = 1 - jaccard      # convert jaccard similarity to distance
     return distance
 
 
@@ -136,6 +142,7 @@ def agglomerate(data):
                 if c1Index == c2Index or c2Index not in clustersDict:
                     continue
                 distance = getDistance(clustersDict[c1Index].center, clustersDict[c2Index].center)
+                #print(distance)
                 if distance < bestDistance:
                     bestDistance = distance
                     cluster1Index = c1Index
@@ -160,16 +167,12 @@ def agglomerate(data):
     clusterSizes.sort()  # unsure if I need to sort these before reporting
     print(clusterSizes[-20:])
 
-
-
-
-
-
 def main():
-    data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
-    # data = pd.read_csv("sample data.csv")
+    #data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
+    data = pd.read_csv("sample data.csv")
+    #data = pd.read_csv("Med_Sample_data.csv")
     # getCrossCorrMatrix(data)
-    columnsCrossCorr(data)
+    #columnsCrossCorr(data)
     agglomerate(data)
 
 
