@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import statistics
+import timeit
 
 #class that defines a cluster
 ###########add more comments here
@@ -128,6 +129,7 @@ def agglomerate(data):
         clustersDict[idx] = Cluster(point[1])
         idx += 1
 
+    iterTracker=1;
     clusterSizes = []
     while len(clustersDict) > 2:
         bestDistance = float("inf")  # tracks smallest distance btwn clusters
@@ -163,17 +165,23 @@ def agglomerate(data):
             print("Cluster A:\n" + str(finalClusters[0].members))
             print("\nCluster B:\n" + str(finalClusters[1].members))
 
+        print("Iteration: " + str(iterTracker))
+        iterTracker += 1
+
     # when we've finished merging, report the biggest clusters that were merged into other clusters
     clusterSizes.sort()  # unsure if I need to sort these before reporting
     print(clusterSizes[-20:])
 
 def main():
     #data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
-    data = pd.read_csv("sample data.csv")
-    #data = pd.read_csv("Med_Sample_data.csv")
+    #data = pd.read_csv("sample data.csv")
+    data = pd.read_csv("Med_Sample_data.csv")
     # getCrossCorrMatrix(data)
     #columnsCrossCorr(data)
+    start = timeit.default_timer()
     agglomerate(data)
+    stop = timeit.default_timer()
+    print('Time: ', stop - start)
 
 
 if __name__ == '__main__':
