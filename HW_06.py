@@ -1,10 +1,15 @@
 import pandas as pd
 import numpy as np
+import plotly.figure_factory as ff
+import matplotlib.pyplot as plt
 import statistics
 import timeit
 
 #class that defines a cluster
 ###########add more comments here
+from scipy.cluster import hierarchy
+
+
 class Cluster:
     def __init__(self, member):
         self.members = [member]
@@ -15,15 +20,6 @@ class Cluster:
     ### update the center of the cluster after new members have been added
     def updateCenter(self):
         center = []
-
-        # median calculation, removed bc of later updates/clarifications to hw
-        # for index in range(2, len(self.members[0])):
-        #     total = 0
-        #     for member in self.members:
-        #         total+=member[index]
-        #     total = total/len(self.members)     # find median of the index
-        #     center.append(total)
-        # self.center = center
 
         # use the mode to find the center instead of the median
         for index in range(2, len(self.members[0])):
@@ -160,10 +156,14 @@ def agglomerate(data):
         clustersDict[cluster1Index].addMembers(clustersDict[cluster2Index].members)
         clustersDict.pop(cluster2Index)
 
-        if len(clustersDict) == 2:
+        if len(clustersDict) == 6:
             finalClusters = list(clustersDict.values())
-            print("Cluster A:\n" + str(finalClusters[0].members))
-            print("\nCluster B:\n" + str(finalClusters[1].members))
+            print("Cluster 1:\n" + str(len(finalClusters[0].members)))
+            print("Cluster 2:\n" + str(len(finalClusters[1].members)))
+            print("Cluster 3:\n" + str(len(finalClusters[2].members)))
+            print("Cluster 4:\n" + str(len(finalClusters[3].members)))
+            print("Cluster 5:\n" + str(len(finalClusters[4].members)))
+            print("Cluster 6:\n" + str(len(finalClusters[5].members)))
 
         print("Iteration: " + str(iterTracker))
         iterTracker += 1
@@ -173,15 +173,23 @@ def agglomerate(data):
     print(clusterSizes[-20:])
 
 def main():
-    #data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
+    data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
     #data = pd.read_csv("sample data.csv")
-    data = pd.read_csv("Med_Sample_data.csv")
+    #data = pd.read_csv("Med_Sample_data.csv")
     # getCrossCorrMatrix(data)
     #columnsCrossCorr(data)
     start = timeit.default_timer()
-    agglomerate(data)
+    #agglomerate(data)
     stop = timeit.default_timer()
     print('Time: ', stop - start)
+
+    ###Creates a numPy array and then creates and displays dendrogram
+    data_list = data.values.tolist()
+    data_array = np.array(data_list)
+    fig = ff.create_dendrogram(data_array, color_threshold=205)
+    fig.update_layout(width=3000, height=1000)
+    fig.show()
+
 
 
 if __name__ == '__main__':
