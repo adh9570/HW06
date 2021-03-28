@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import plotly.figure_factory as ff
+from collections import defaultdict
 import matplotlib.pyplot as plt
 import statistics
 import timeit
@@ -20,20 +21,15 @@ class Cluster:
     ### update the center of the cluster after new members have been added
     def updateCenter(self):
         center = []
-
+        sum_list=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         # use the mode to find the center instead of the median
         for index in range(2, len(self.members[0])):
             ones = 0
             zeros = 0
             for member in self.members:
-                if member[index] == 0:
-                    zeros += 1
-                else:
-                    ones += 1
-            if ones > zeros:
-                center.append(1)
-            else:
-                center.append(0)
+                sum_list[index-2]+=member[index-2]
+        for value in sum_list:
+            center.append(round(value/len(self.members)))
         self.center = center
 
     ### adds the members from one cluster to the current cluster
@@ -99,6 +95,7 @@ def getDistance(cluster1, cluster2):
     # Doing squareroot and
     # calculate the Euclidean distance
     distance = (np.sqrt(sum_sq))
+    #distance = np.linalg.norm(point1 - point2)
     return distance
 
 ### Finds the Jaccard similarity and convert to distance
@@ -141,7 +138,7 @@ def agglomerate(data):
                     continue
                 distance = getDistance(clustersDict[c1Index].center, clustersDict[c2Index].center)
                 #print(distance)
-                if distance < bestDistance:
+                if distance <= bestDistance:
                     bestDistance = distance
                     cluster1Index = c1Index
                     cluster2Index = c2Index
@@ -149,17 +146,24 @@ def agglomerate(data):
         # adds smallest cluster being merged to the small merged cluster list
         if len(clustersDict[cluster1Index].members) <= len(clustersDict[cluster2Index].members):
             clusterSizes.append(len(clustersDict[cluster1Index].members))
+            clustersDict[cluster2Index].addMembers(clustersDict[cluster1Index].members)
+            clustersDict.pop(cluster1Index)
+            #print(clusterSizes)
         else:
             clusterSizes.append(len(clustersDict[cluster2Index].members))
+            clustersDict[cluster1Index].addMembers(clustersDict[cluster2Index].members)
+            clustersDict.pop(cluster2Index)
+            #print(clusterSizes)
 
         # merge the two clusters and delete the second
-        clustersDict[cluster1Index].addMembers(clustersDict[cluster2Index].members)
-        clustersDict.pop(cluster2Index)
+        #clustersDict[cluster1Index].addMembers(clustersDict[cluster2Index].members)
+        #clustersDict.pop(cluster2Index)
 
         if len(clustersDict) == 6:
             finalClusters = list(clustersDict.values())
             print("Cluster 1:\n" + str(len(finalClusters[0].members)))
             print("Cluster 2:\n" + str(len(finalClusters[1].members)))
+            #print("Cluster 2:\n" + str(finalClusters[1].members))
             print("Cluster 3:\n" + str(len(finalClusters[2].members)))
             print("Cluster 4:\n" + str(len(finalClusters[3].members)))
             print("Cluster 5:\n" + str(len(finalClusters[4].members)))
@@ -169,26 +173,28 @@ def agglomerate(data):
         iterTracker += 1
 
     # when we've finished merging, report the biggest clusters that were merged into other clusters
-    clusterSizes.sort()  # unsure if I need to sort these before reporting
-    print(clusterSizes[-20:])
+    #clusterSizes.sort()  # unsure if I need to sort these before reporting
+    #[-20:]
+    print(clusterSizes[-18:])
+
 
 def main():
-    data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
+    #data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
     #data = pd.read_csv("sample data.csv")
-    #data = pd.read_csv("Med_Sample_data.csv")
-    # getCrossCorrMatrix(data)
+    data = pd.read_csv("Med_Sample_data.csv")
+    #getCrossCorrMatrix(data)
     #columnsCrossCorr(data)
     start = timeit.default_timer()
-    #agglomerate(data)
+    agglomerate(data)
     stop = timeit.default_timer()
     print('Time: ', stop - start)
 
     ###Creates a numPy array and then creates and displays dendrogram
     data_list = data.values.tolist()
     data_array = np.array(data_list)
-    fig = ff.create_dendrogram(data_array, color_threshold=205)
+    fig = ff.create_dendrogram(data_array, color_threshold=220)
     fig.update_layout(width=3000, height=1000)
-    fig.show()
+    #fig.show()
 
 
 
