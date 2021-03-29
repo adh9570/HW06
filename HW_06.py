@@ -19,7 +19,7 @@ class Cluster:
         # use the mean to find the center
         for index in range(0, len(self.members[0])-1):
             for member in self.members:                         # go through each member in the cluster
-                sum_list[index]+=member[index]                  # add each member's attributes to a total sum
+                sum_list[index]+=member[index+1]                # add each member's attributes to a total sum
         for value in sum_list:                                  # divide each value in the sum tracker by the number
             center.append(value/len(self.members))              # of members whose attributes contributed to the sum
         self.center = center
