@@ -1,3 +1,4 @@
+#Authors: Alexis Halbur & Grace Olive
 import statistics
 import numpy as np
 import pandas as pd
@@ -221,7 +222,7 @@ def main():
     data_list = data.values.tolist()
     data_array = np.array(data_list)                    # get an array of the values in the data
     fig = ff.create_dendrogram(data_array, color_threshold=220) # send the data values array in to create a dendogram
-    fig.update_layout(width=1000, height=1000)
+    fig.update_layout(width=2500, height=900)
     fig.show()                                          # display the dendogram
 
 
