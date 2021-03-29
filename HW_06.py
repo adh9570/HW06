@@ -197,8 +197,8 @@ def agglomerate(data):
             print("Cluster 6:\n   Size:" + str(len(finalClusters[5].members)))
             print("   Center: " + str(finalClusters[5].center))
 
-        #print("Iteration: " + str(iterTracker))
-        #iterTracker += 1
+        print("Iteration: " + str(iterTracker))
+        iterTracker += 1
 
     # when we've finished merging, report the clusters that were merged into other clusters
     print(clusterSizes[-18:])
