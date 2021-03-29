@@ -155,23 +155,22 @@ def agglomerate(data):
         bestDistance = float("inf")                 # tracks smallest distance btwn clusters
         cluster1Index = 0                           # tracks index of one of the clusters with smallest distance
         cluster2Index = 0                           # tracks index of other cluster with smallest distance
-        firstKey = list(clustersDict.keys())[0]
-        secondKey = list(clustersDict.keys())[1]
-        bound = list(clustersDict.keys())
-
-        for c1Index in range(firstKey, bound[-1]):  #len(clustersDict) + firstKey):
+        firstKey = list(clustersDict.keys())[0]     # lowest key in the clusters dictionary
+        secondKey = list(clustersDict.keys())[1]    # second lowest key in the clusters dictionary
+        keys = list(clustersDict.keys())
+        for c1Index in range(firstKey, keys[-1]):   # go through each member in the cluster and compare its center to every other cluster center
             if c1Index not in clustersDict:
                 continue
-            for c2Index in range(secondKey, bound[-1]): #len(clustersDict) + secondKey):
+            for c2Index in range(secondKey, keys[-1]):
                 if c1Index >= c2Index or c2Index not in clustersDict:
                     continue
-                distance = getDistance(clustersDict[c1Index].center, clustersDict[c2Index].center)
-                if distance <= bestDistance:
-                    bestDistance = distance
-                    cluster1Index = c1Index
+                distance = getDistance(clustersDict[c1Index].center, clustersDict[c2Index].center)  # get the distance between clusters 1 and 2
+                if distance <= bestDistance:        # if this distance is equal to or better than our best distance
+                    bestDistance = distance         # update to track the new closest clusters and the distance
+                    cluster1Index = c1Index         # between them
                     cluster2Index = c2Index
 
-        # adds smallest cluster being merged to the small merged cluster list
+        # adds smallest cluster being merged to the small merged cluster list and merge into the larger cluster
         if len(clustersDict[cluster1Index].members) < len(clustersDict[cluster2Index].members):
             clusterSizes.append(len(clustersDict[cluster1Index].members))
             clustersDict[cluster2Index].addMembers(clustersDict[cluster1Index].members)
@@ -181,7 +180,7 @@ def agglomerate(data):
             clustersDict[cluster1Index].addMembers(clustersDict[cluster2Index].members)
             clustersDict.pop(cluster2Index)
 
-        #Prints prototype of each of the final 6 clusters
+        # Prints prototype of each of the final 6 clusters
         if len(clustersDict) == 6:
             finalClusters = list(clustersDict.values())
             print("Cluster 1:\n   Size:" + str(len(finalClusters[0].members)))
@@ -205,27 +204,25 @@ def agglomerate(data):
 
     
 def main():
-    data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
+    data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv") # read the shopping data into a dataframe
 
     ### Compute cross-correlation matrix
-    dataWithoutID = data.iloc[:,1:]
-    columnsCrossCorr(dataWithoutID)
+    dataWithoutID = data.iloc[:,1:]                     # get the data from the dataframe without the ID attached
+    columnsCrossCorr(dataWithoutID)                     # compute the cross correlation coefficients for every attribute with every other attribute
 
     ### Compute KMeans clustering
-    values = dataWithoutID.values
-    kmeansCluster(values)
+    values = dataWithoutID.values                       # get the list of values from the data (in array format rather than dataframe)
+    kmeansCluster(values)                               # cluster the values in the data using KMeans
 
     ### Agglomerate
-    # data = pd.read_csv("sample data.csv")
-    #data = pd.read_csv("Med_Sample_data.csv")
-    agglomerate(data)
+    agglomerate(data)                                   # cluster the data using agglomeration
 
     ###Creates a numPy array and then creates and displays dendrogram
     data_list = data.values.tolist()
-    data_array = np.array(data_list)
-    fig = ff.create_dendrogram(data_array, color_threshold=220)
+    data_array = np.array(data_list)                    # get an array of the values in the data
+    fig = ff.create_dendrogram(data_array, color_threshold=220) # send the data values array in to create a dendogram
     fig.update_layout(width=1000, height=1000)
-    fig.show()
+    fig.show()                                          # display the dendogram
 
 
 if __name__ == '__main__':
