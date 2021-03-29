@@ -1,10 +1,12 @@
-import pandas as pd
-import numpy as np
+import timeit
 import statistics
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+import plotly.figure_factory as ff
 from sklearn.cluster import KMeans
-from sklearn.datasets import load_digits
-from sklearn.decomposition import PCA
+from sklearn.cluster import AgglomerativeClustering
+
 
 def kmeansCluster(values):
     kmeans = KMeans(n_clusters=6)
@@ -49,6 +51,37 @@ def kmeansCluster(values):
     plt.show()
 
 
+#class that defines a cluster
+###########add more comments here
+from scipy.cluster import hierarchy
+
+
+class Cluster:
+    def __init__(self, member):
+        self.members = [member]
+        self.center = []
+        for value in range(1, (len(member))-1):
+            self.center.append(member[value])
+
+    ### update the center of the cluster after new members have been added
+    def updateCenter(self):
+        center = []
+        sum_list=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        # use the mode to find the center instead of the median
+        for index in range(1, len(self.members[0])-1):
+            for member in self.members:
+                sum_list[index-1]+=member[index]
+        for value in sum_list:
+            center.append(value/len(self.members))
+        self.center = center
+
+    ### adds the members from one cluster to the current cluster
+    def addMembers(self, newMembers):
+        count = 0
+        for member in range(0, len(newMembers)):
+            self.members.append(newMembers[member])
+            count += 1
+        self.updateCenter()
 
 ### Derived from slide 44 of Distance Metrics part A slides
 ### Takes in two arrays, attributes S and T, and uses the average of all of
@@ -69,7 +102,6 @@ def computeCrossCorrelation(attributeS, attributeT):
         crossCorrSum += ((attributeS[k] - avgS)/stdDevS) * ((attributeT[k] - avgT)/stdDevT)
 
     return crossCorrSum/N
-
 
 ### Go through every row in the data and compare it to every other row of data,
 ### compute the cross correlation, and put that value into an NxN matrix of all
@@ -92,13 +124,122 @@ def columnsCrossCorr(data):
         output.write("\n")
 
 
+### Finds the Euchildean distance between two cluster centers
+def getDistance(cluster1, cluster2):
+    point1 = np.array(cluster1)
+    point2 = np.array(cluster2)
+
+    #get sum of the squared value of the two centers
+    sum_sq = np.sum(np.square(point1 - point2))
+
+    # Doing squareroot and
+    # calculate the Euclidean distance
+    distance = (np.sqrt(sum_sq))
+    return distance
+
+def L2Norm(cluster1, cluster2):
+    distance = 0
+    for index in range(0, len(cluster1)):
+        distance += (cluster1[index] - cluster2[index])**20
+    power = 1/20
+    return (distance)**(power)
+
+### Agglomerative function takes in the raw data and forms clusters until there
+### are only two clusters left (Cluster A and Cluster B)
+def agglomerate(data):
+    clustersDict = {}
+
+    idx = 0
+    for point in data.iterrows():
+        clustersDict[idx] = Cluster(point[1])
+        idx += 1
+
+    iterTracker=1
+    clusterSizes = []
+    while len(clustersDict) > 2:
+        bestDistance = float("inf")  # tracks smallest distance btwn clusters
+        cluster1Index = 0  # tracks index of one of the clusters with smallest distance
+        cluster2Index = 0  # tracks index of other cluster with smallest distance
+        firstKey = list(clustersDict.keys())[0]
+        secondKey = list(clustersDict.keys())[1]
+        bound = list(clustersDict.keys())
+
+        for c1Index in range(firstKey, bound[-1]): #len(clustersDict) + firstKey):
+            if c1Index not in clustersDict:
+                continue
+            for c2Index in range(secondKey, bound[-1]):#len(clustersDict) + secondKey):
+                if c1Index >= c2Index or c2Index not in clustersDict:
+                    continue
+                distance = getDistance(clustersDict[c1Index].center, clustersDict[c2Index].center)
+                #print(distance)
+                if distance <= bestDistance:
+                    bestDistance = distance
+                    cluster1Index = c1Index
+                    cluster2Index = c2Index
+
+        # adds smallest cluster being merged to the small merged cluster list
+        if len(clustersDict[cluster1Index].members) < len(clustersDict[cluster2Index].members):
+            clusterSizes.append(len(clustersDict[cluster1Index].members))
+            clustersDict[cluster2Index].addMembers(clustersDict[cluster1Index].members)
+            clustersDict.pop(cluster1Index)
+            #print(clusterSizes)
+        else:
+            clusterSizes.append(len(clustersDict[cluster2Index].members))
+            clustersDict[cluster1Index].addMembers(clustersDict[cluster2Index].members)
+            clustersDict.pop(cluster2Index)
+            #print(clusterSizes)
+
+        # merge the two clusters and delete the second
+        #clustersDict[cluster1Index].addMembers(clustersDict[cluster2Index].members)
+        #clustersDict.pop(cluster2Index)
+
+        if len(clustersDict) == 6:
+            finalClusters = list(clustersDict.values())
+            print("Cluster 1:\n   Size:" + str(len(finalClusters[0].members)))
+            print("   Center: "+str(finalClusters[0].center))
+            print("Cluster 2:\n   Size:" + str(len(finalClusters[1].members)))
+            print("   Center: " + str(finalClusters[1].center))
+            print("Cluster 3:\n   Size:" + str(len(finalClusters[2].members)))
+            print("   Center: " + str(finalClusters[2].center))
+            print("Cluster 4:\n   Size:" + str(len(finalClusters[3].members)))
+            print("   Center: " + str(finalClusters[3].center))
+            print("Cluster 5:\n   Size:" + str(len(finalClusters[4].members)))
+            print("   Center: " + str(finalClusters[4].center))
+            print("Cluster 6:\n   Size:" + str(len(finalClusters[5].members)))
+            print("   Center: " + str(finalClusters[5].center))
+
+        print("Iteration: " + str(iterTracker))
+        iterTracker += 1
+
+    # when we've finished merging, report the clusters that were merged into other clusters
+    print(clusterSizes[-18:])
+
+
 def main():
     data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
+
+    ### Compute cross-correlation matrix
     dataWithoutID = data.iloc[:,1:]
     columnsCrossCorr(dataWithoutID)
+
+    ### Compute KMeans clustering
     values = dataWithoutID.values
     kmeansCluster(values)
 
+    ### Agglomerate
+    data = pd.read_csv("sample data.csv")
+    #data = pd.read_csv("Med_Sample_data.csv")
+    start = timeit.default_timer()
+    agglomerate(data)
+    stop = timeit.default_timer()
+    print('Time: ', stop - start)
+
+    ###Creates a numPy array and then creates and displays dendrogram
+    data_list = data.values.tolist()
+    data_array = np.array(data_list)
+    fig = ff.create_dendrogram(data_array, color_threshold=220)
+    fig.update_layout(width=1000, height=1000)
+    #fig.show()
 
 if __name__ == '__main__':
     main()
