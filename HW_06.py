@@ -1,13 +1,11 @@
-import pandas as pd
-import numpy as np
-import plotly.figure_factory as ff
-from sklearn.cluster import AgglomerativeClustering
-import matplotlib.pyplot as plt
-import statistics
 import timeit
-
-#class that defines a cluster
-###########add more comments here
+import statistics
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import plotly.figure_factory as ff
+from sklearn.cluster import KMeans
+from sklearn.cluster import AgglomerativeClustering
 from scipy.cluster import hierarchy
 
 
@@ -15,17 +13,17 @@ class Cluster:
     def __init__(self, member):
         self.members = [member]
         self.center = []
-        for value in range(1, (len(member))-1):
+        for value in range(1, len(member)):
             self.center.append(member[value])
 
     ### update the center of the cluster after new members have been added
     def updateCenter(self):
         center = []
-        sum_list=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        sum_list=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         # use the mode to find the center instead of the median
-        for index in range(1, len(self.members[0])-1):
+        for index in range(0, len(self.members[0])-1):
             for member in self.members:
-                sum_list[index-1]+=member[index]
+                sum_list[index]+=member[index]
         for value in sum_list:
             center.append(value/len(self.members))
         self.center = center
@@ -37,6 +35,7 @@ class Cluster:
             self.members.append(newMembers[member])
             count += 1
         self.updateCenter()
+
 
 ### Derived from slide 44 of Distance Metrics part A slides
 ### Takes in two arrays, attributes S and T, and uses the average of all of
@@ -61,19 +60,17 @@ def computeCrossCorrelation(attributeS, attributeT):
 ### Go through every row in the data and compare it to every other row of data,
 ### compute the cross correlation, and put that value into an NxN matrix of all
 ### of the cross correlation values
-def columnsCrossCorr(dataframe):
-    dataWithoutID = dataframe.iloc[:,1:]                    # get the dataframe without the ID column
-    matrix = np.ones((len(dataWithoutID.columns), len(dataWithoutID.columns)))
-    print(matrix)
+def columnsCrossCorr(data):
+    matrix = np.ones((len(data.columns), len(data.columns)))
     output = open("new_output.csv", "w")
     xIndex = 0
-    for firstColumn in dataWithoutID.columns:
+    for firstColumn in data.columns:
         yIndex = 0
-        for secondColumn in dataWithoutID.columns:
+        for secondColumn in data.columns:
             if firstColumn == secondColumn:
                 output.write('1, ')
                 continue
-            coef = computeCrossCorrelation(dataWithoutID[firstColumn].tolist(), dataWithoutID[secondColumn].tolist())
+            coef = computeCrossCorrelation(data[firstColumn].tolist(), data[secondColumn].tolist())
             matrix[xIndex][yIndex] = coef
             output.write(str(coef) + ', ')
             yIndex += 1
@@ -81,25 +78,68 @@ def columnsCrossCorr(dataframe):
         output.write("\n")
 
 
-### Finds the Euchildean distance between two cluster centers
+### Takes in the data without the ID column and runs it through the sklearn
+### algorithm to cluster the data into six clusters. Once the clusters have 
+### been formed, the centers of the 
+def kmeansCluster(values):
+    kmeans = KMeans(n_clusters=6)
+    kmv = kmeans.fit_predict(values)
+    
+    print("Cluster Centers:", kmeans.cluster_centers_)
+    centers = kmeans.cluster_centers_
+
+    # write the cluster centers to a file to be able to more clearly read the data
+    centersFile = open("centers.csv", "w")
+    for i in centers:
+        for j in i:
+            centersFile.write(str(j) + ', ')
+        centersFile.write('\n')
+
+    # count the number of datapoints in each cluster then prints out the cluster sizes
+    clusterSizes = [0] * 6
+    for value in kmv:
+        if value == 0:
+            clusterSizes[0] += 1
+        elif value == 1:
+            clusterSizes[1] += 1
+        elif value == 2:
+            clusterSizes[2] += 1
+        elif value == 3:
+            clusterSizes[3] += 1
+        elif value == 4:
+            clusterSizes[4] += 1
+        elif value == 5:
+            clusterSizes[5] += 1
+        elif value == 6:
+            clusterSizes[6] += 1
+        
+    print("Cluster Sizes", clusterSizes)
+
+    # plots the six different clusters, each in a different color, in a scatter plot
+    # the alpha value is purposely low to be able to visualize areas of the graph 
+    # where there is a higher density of datapoints
+    plt.scatter(values[kmv == 0, 0], values[kmv == 0, 1], s=50, c='r', marker='o', label='Cluster A', alpha=0.25)
+    plt.scatter(values[kmv == 1, 0], values[kmv == 1, 1], s=50, c='g', marker='o', label='Cluster B', alpha=0.25)
+    plt.scatter(values[kmv == 2, 0], values[kmv == 2, 1], s=50, c='b', marker='o', label='Cluster C', alpha=0.25)
+    plt.scatter(values[kmv == 3, 0], values[kmv == 3, 1], s=50, c='c', marker='o', label='Cluster D', alpha=0.25)
+    plt.scatter(values[kmv == 4, 0], values[kmv == 4, 1], s=50, c='m', marker='o', label='Cluster E', alpha=0.25)
+    plt.scatter(values[kmv == 5, 0], values[kmv == 5, 1], s=50, c='y', marker='o', label='Cluster F', alpha=0.25)
+
+    plt.legend(scatterpoints=1)
+    plt.grid()
+    plt.show()
+
+
+### Find the Euchildean distance between two cluster centers
 def getDistance(cluster1, cluster2):
     point1 = np.array(cluster1)
     point2 = np.array(cluster2)
 
-    #get sum of the squared value of the two centers
-    sum_sq = np.sum(np.square(point1 - point2))
+    sum_sq = np.sum(np.square(point1 - point2))     # get sum of the squared value of the two centers
 
-    # Doing squareroot and
-    # calculate the Euclidean distance
-    distance = (np.sqrt(sum_sq))
+    distance = (np.sqrt(sum_sq))                    # Doing squareroot and calculate the Euclidean distance
     return distance
 
-def L2Norm(cluster1, cluster2):
-    distance = 0
-    for index in range(0, len(cluster1)):
-        distance += (cluster1[index] - cluster2[index])**20
-    power = 1/20
-    return (distance)**(power)
 
 ### Agglomerative function takes in the raw data and forms clusters until there
 ### are only two clusters left (Cluster A and Cluster B)
@@ -114,21 +154,20 @@ def agglomerate(data):
     iterTracker=1
     clusterSizes = []
     while len(clustersDict) > 2:
-        bestDistance = float("inf")  # tracks smallest distance btwn clusters
-        cluster1Index = 0  # tracks index of one of the clusters with smallest distance
-        cluster2Index = 0  # tracks index of other cluster with smallest distance
+        bestDistance = float("inf")                 # tracks smallest distance btwn clusters
+        cluster1Index = 0                           # tracks index of one of the clusters with smallest distance
+        cluster2Index = 0                           # tracks index of other cluster with smallest distance
         firstKey = list(clustersDict.keys())[0]
         secondKey = list(clustersDict.keys())[1]
         bound = list(clustersDict.keys())
 
-        for c1Index in range(firstKey, bound[-1]): #len(clustersDict) + firstKey):
+        for c1Index in range(firstKey, bound[-1]):  #len(clustersDict) + firstKey):
             if c1Index not in clustersDict:
                 continue
-            for c2Index in range(secondKey, bound[-1]):#len(clustersDict) + secondKey):
+            for c2Index in range(secondKey, bound[-1]): #len(clustersDict) + secondKey):
                 if c1Index >= c2Index or c2Index not in clustersDict:
                     continue
                 distance = getDistance(clustersDict[c1Index].center, clustersDict[c2Index].center)
-                #print(distance)
                 if distance <= bestDistance:
                     bestDistance = distance
                     cluster1Index = c1Index
@@ -139,16 +178,10 @@ def agglomerate(data):
             clusterSizes.append(len(clustersDict[cluster1Index].members))
             clustersDict[cluster2Index].addMembers(clustersDict[cluster1Index].members)
             clustersDict.pop(cluster1Index)
-            #print(clusterSizes)
         else:
             clusterSizes.append(len(clustersDict[cluster2Index].members))
             clustersDict[cluster1Index].addMembers(clustersDict[cluster2Index].members)
             clustersDict.pop(cluster2Index)
-            #print(clusterSizes)
-
-        # merge the two clusters and delete the second
-        #clustersDict[cluster1Index].addMembers(clustersDict[cluster2Index].members)
-        #clustersDict.pop(cluster2Index)
 
         if len(clustersDict) == 6:
             finalClusters = list(clustersDict.values())
@@ -168,18 +201,24 @@ def agglomerate(data):
         print("Iteration: " + str(iterTracker))
         iterTracker += 1
 
-    # when we've finished merging, report the biggest clusters that were merged into other clusters
-    #clusterSizes.sort()  # unsure if I need to sort these before reporting
-    #[-20:]
+    # when we've finished merging, report the clusters that were merged into other clusters
     print(clusterSizes[-18:])
 
 
 def main():
-    #data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
-    data = pd.read_csv("sample data.csv")
+    data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
+
+    ### Compute cross-correlation matrix
+    dataWithoutID = data.iloc[:,1:]
+    columnsCrossCorr(dataWithoutID)
+
+    ### Compute KMeans clustering
+    values = dataWithoutID.values
+    kmeansCluster(values)
+
+    ### Agglomerate
+    # data = pd.read_csv("sample data.csv")
     #data = pd.read_csv("Med_Sample_data.csv")
-    #getCrossCorrMatrix(data)
-    #columnsCrossCorr(data)
     start = timeit.default_timer()
     agglomerate(data)
     stop = timeit.default_timer()
@@ -190,7 +229,7 @@ def main():
     data_array = np.array(data_list)
     fig = ff.create_dendrogram(data_array, color_threshold=220)
     fig.update_layout(width=1000, height=1000)
-    #fig.show()
+    fig.show()
 
 if __name__ == '__main__':
     main()
