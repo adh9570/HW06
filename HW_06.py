@@ -16,12 +16,12 @@ class Cluster:
     def updateCenter(self):
         center = []
         sum_list=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-        # use the mode to find the center instead of the median
+        # use the mean to find the center
         for index in range(0, len(self.members[0])-1):
-            for member in self.members:
-                sum_list[index]+=member[index]
-        for value in sum_list:
-            center.append(value/len(self.members))
+            for member in self.members:                         # go through each member in the cluster
+                sum_list[index]+=member[index]                  # add each member's attributes to a total sum
+        for value in sum_list:                                  # divide each value in the sum tracker by the number
+            center.append(value/len(self.members))              # of members whose attributes contributed to the sum
         self.center = center
 
     ### adds the members from one cluster to the current cluster
@@ -30,7 +30,7 @@ class Cluster:
         for member in range(0, len(newMembers)):
             self.members.append(newMembers[member])
             count += 1
-        self.updateCenter()
+        self.updateCenter()                                     # update the center of the cluster to account for new members
 
 
 ### Derived from slide 44 of Distance Metrics part A slides
@@ -39,39 +39,39 @@ class Cluster:
 ### values to calculate the cross correlation coefficient between the two 
 ### attributes
 def computeCrossCorrelation(attributeS, attributeT):
+    avgS = np.sum(attributeS) / len(attributeS)                 # get the average of all of the values in attribute S
+    avgT = np.sum(attributeT) / len(attributeT)                 # get the average of all of the values in attribute T
+
+    stdDevS = statistics.stdev(attributeS)                      # get the standard deviation of the values in attribute S
+    stdDevT = statistics.stdev(attributeT)                      # get the standard deviation of the values in attribute T
+
     N = len(attributeS)
-
-    avgS = np.sum(attributeS) / len(attributeS)
-    avgT = np.sum(attributeT) / len(attributeT)
-
-    stdDevS = statistics.stdev(attributeS)
-    stdDevT = statistics.stdev(attributeT)
-
+    
     crossCorrSum = 0
-    for k in range(0, N):
+    for k in range(0, N):                                       # equation on slide 44 of Distance Metrics part A
         crossCorrSum += ((attributeS[k] - avgS)/stdDevS) * ((attributeT[k] - avgT)/stdDevT)
-
     return crossCorrSum/N
+
 
 ### Go through every row in the data and compare it to every other row of data,
 ### compute the cross correlation, and put that value into an NxN matrix of all
 ### of the cross correlation values
 def columnsCrossCorr(data):
-    matrix = np.ones((len(data.columns), len(data.columns)))
-    output = open("new_output.csv", "w")
-    xIndex = 0
-    for firstColumn in data.columns:
-        yIndex = 0
+    matrix = np.ones((len(data.columns), len(data.columns)))    # create tracker matrix to hold info on cross correlation coefficient calculations between attributes
+    output = open("Cross_Correlation_Coefficients.csv", "w")    # create a file to hold the cross correlation coefficients between attributes
+    xIndex = 0                                                  # index for tracking the first attribute in the matrix
+    for firstColumn in data.columns:                            # go through each column and calculate the cross corr coef with every other attribute
+        yIndex = 0                                              # index for tracking the second attribute in the matrix
         for secondColumn in data.columns:
-            if firstColumn == secondColumn:
-                output.write('1, ')
+            if firstColumn == secondColumn:                     # if calculating the cross corr coef of one attribute with itself, the value will always be 1
+                output.write('1, ')                             # write a 1 to the output file (do not need to add a 1 to the matrix because the matrix is pre-filled with 1s
                 continue
-            coef = computeCrossCorrelation(data[firstColumn].tolist(), data[secondColumn].tolist())
-            matrix[xIndex][yIndex] = coef
-            output.write(str(coef) + ', ')
+            coef = computeCrossCorrelation(data[firstColumn].tolist(), data[secondColumn].tolist())     # get cross corr coefficient of two attributes
+            matrix[xIndex][yIndex] = coef                       # add the cross corr coef to the tracker matrix in the position [first attribute][second attribute]
+            output.write(str(coef) + ', ')                      # add the cross corr coef to the tracking csv along with a comma deliminator
             yIndex += 1
         xIndex += 1
-        output.write("\n")
+        output.write("\n")                                      # add a new line after all of the calculations are finished for the first attribute 
 
 
 ### Takes in the data without the ID column and runs it through the sklearn
@@ -125,6 +125,7 @@ def kmeansCluster(values):
     plt.grid()
     plt.show()
 
+    
 ### Find the Euchildean distance between two cluster centers
 def getDistance(cluster1, cluster2):
     point1 = np.array(cluster1)
@@ -202,6 +203,7 @@ def agglomerate(data):
     # when we've finished merging, report the clusters that were merged into other clusters
     print(clusterSizes[-18:])
 
+    
 def main():
     data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
 
