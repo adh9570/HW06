@@ -1,13 +1,9 @@
-import timeit
 import statistics
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.figure_factory as ff
 from sklearn.cluster import KMeans
-from sklearn.cluster import AgglomerativeClustering
-from scipy.cluster import hierarchy
-
 
 class Cluster:
     def __init__(self, member):
@@ -129,15 +125,16 @@ def kmeansCluster(values):
     plt.grid()
     plt.show()
 
-
 ### Find the Euchildean distance between two cluster centers
 def getDistance(cluster1, cluster2):
     point1 = np.array(cluster1)
     point2 = np.array(cluster2)
 
-    sum_sq = np.sum(np.square(point1 - point2))     # get sum of the squared value of the two centers
+    # get sum of the squared value of the two centers
+    sum_sq = np.sum(np.square(point1 - point2))
 
-    distance = (np.sqrt(sum_sq))                    # Doing squareroot and calculate the Euclidean distance
+    # Doing squareroot and calculate the Euclidean distance
+    distance = (np.sqrt(sum_sq))
     return distance
 
 
@@ -183,6 +180,7 @@ def agglomerate(data):
             clustersDict[cluster1Index].addMembers(clustersDict[cluster2Index].members)
             clustersDict.pop(cluster2Index)
 
+        #Prints prototype of each of the final 6 clusters
         if len(clustersDict) == 6:
             finalClusters = list(clustersDict.values())
             print("Cluster 1:\n   Size:" + str(len(finalClusters[0].members)))
@@ -198,12 +196,11 @@ def agglomerate(data):
             print("Cluster 6:\n   Size:" + str(len(finalClusters[5].members)))
             print("   Center: " + str(finalClusters[5].center))
 
-        print("Iteration: " + str(iterTracker))
-        iterTracker += 1
+        #print("Iteration: " + str(iterTracker))
+        #iterTracker += 1
 
     # when we've finished merging, report the clusters that were merged into other clusters
     print(clusterSizes[-18:])
-
 
 def main():
     data = pd.read_csv("HW_PCA_SHOPPING_CART_v896.csv")
@@ -219,10 +216,7 @@ def main():
     ### Agglomerate
     # data = pd.read_csv("sample data.csv")
     #data = pd.read_csv("Med_Sample_data.csv")
-    start = timeit.default_timer()
     agglomerate(data)
-    stop = timeit.default_timer()
-    print('Time: ', stop - start)
 
     ###Creates a numPy array and then creates and displays dendrogram
     data_list = data.values.tolist()
@@ -230,6 +224,7 @@ def main():
     fig = ff.create_dendrogram(data_array, color_threshold=220)
     fig.update_layout(width=1000, height=1000)
     fig.show()
+
 
 if __name__ == '__main__':
     main()
